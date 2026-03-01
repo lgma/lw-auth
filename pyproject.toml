@@ -1,0 +1,22 @@
+[project]
+name = "lw-auth"
+version = "0.1.0"
+description = "Leeuwwolk — JWT verification for Flask and FastAPI products"
+requires-python = ">=3.11"
+dependencies = [
+    "PyJWT>=2.10",
+    "cryptography>=44.0",
+    "pydantic>=2.10",
+]
+
+[project.optional-dependencies]
+fastapi = ["fastapi>=0.115"]
+dev = ["pytest>=8.0", "httpx>=0.27"]
+
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.backends.legacy:build"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lw_auth*"]
