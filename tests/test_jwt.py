@@ -42,6 +42,31 @@ class TestVerifyToken:
         assert result.role == "legal_user"
         assert result.org_id == "550e8400-e29b-41d4-a716-446655440000"
 
+    def test_email_in_payload(self):
+        payload = {
+            "sub": "42",
+            "role": "legal_admin",
+            "email": "abogado@firma.com",
+            "org_id": "7",
+            "type": "access",
+            "exp": int(time.time()) + 1800,
+            "iat": int(time.time()),
+        }
+        result = verify_token(_make_token(payload), PUBLIC_KEY)
+        assert result.email == "abogado@firma.com"
+
+    def test_email_optional_absent(self):
+        payload = {
+            "sub": "1",
+            "role": "admin",
+            "org_id": None,
+            "type": "access",
+            "exp": int(time.time()) + 1800,
+            "iat": int(time.time()),
+        }
+        result = verify_token(_make_token(payload), PUBLIC_KEY)
+        assert result.email is None
+
     def test_no_org_id(self):
         payload = {
             "sub": "1",
