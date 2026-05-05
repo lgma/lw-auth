@@ -47,7 +47,13 @@ class JWKSClient:
         self._fetched_at: float = 0.0
 
     def _fetch(self) -> None:
-        with urllib.request.urlopen(self.jwks_url, timeout=5) as resp:
+        # Use a non-default User-Agent so Cloudflare/WAFs don't classify us as a bot.
+        # urllib's default 'Python-urllib/X.Y' is on most block lists.
+        req = urllib.request.Request(
+            self.jwks_url,
+            headers={"User-Agent": "lw-auth/0.2.1 (+https://github.com/lgma/lw-auth)"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read())
         keys: dict[str, str] = {}
         for jwk in data.get("keys", []):
