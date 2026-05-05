@@ -117,3 +117,70 @@ class TestVerifyToken:
         tampered = token[:-5] + "XXXXX"
         with pytest.raises(jwt.InvalidTokenError):
             verify_token(tampered, PUBLIC_KEY)
+
+
+class TestJWKSClient:
+    def test_jwks_verifies_token_with_kid(self):
+        from lw_auth import JWKSClient
+        from lw_auth.jwt import JWKSClient as _JC
+
+        # Build a fake JWKS dict (in-memory) and inject it
+        client = _JC.__new__(_JC)
+        client.jwks_url = "fake://"
+        client.cache_ttl = 3600
+        client._keys = {"k1": PUBLIC_KEY}
+        client._fetched_at = time.time()
+
+        token = jwt.encode(
+            {
+                "sub": "1", "role": "admin", "type": "access",
+                "exp": int(time.time()) + 1800, "iat": int(time.time()),
+            },
+            PRIVATE_KEY, algorithm="RS256", headers={"kid": "k1"},
+        )
+        result = verify_token(token, jwks=client)
+        assert result.sub == "1"
+
+    def test_jwks_missing_kid_raises(self):
+        from lw_auth.jwt import JWKSClient as _JC
+        client = _JC.__new__(_JC)
+        client.jwks_url = "fake://"
+        client.cache_ttl = 3600
+        client._keys = {"k1": PUBLIC_KEY}
+        client._fetched_at = time.time()
+
+        # token WITHOUT kid header
+        token = _make_token({
+            "sub": "1", "role": "admin", "type": "access",
+            "exp": int(time.time()) + 1800, "iat": int(time.time()),
+        })
+        with pytest.raises(jwt.InvalidTokenError):
+            verify_token(token, jwks=client)
+
+
+class TestStrictValidation:
+    def test_issuer_validation_passes(self):
+        token = _make_token({
+            "sub": "1", "role": "admin", "type": "access",
+            "iss": "auth.leeuwwolk.com",
+            "exp": int(time.time()) + 1800, "iat": int(time.time()),
+        })
+        result = verify_token(token, PUBLIC_KEY, issuer="auth.leeuwwolk.com")
+        assert result.iss == "auth.leeuwwolk.com"
+
+    def test_issuer_validation_rejects_wrong(self):
+        token = _make_token({
+            "sub": "1", "role": "admin", "type": "access",
+            "iss": "evil.com",
+            "exp": int(time.time()) + 1800, "iat": int(time.time()),
+        })
+        with pytest.raises(jwt.InvalidTokenError):
+            verify_token(token, PUBLIC_KEY, issuer="auth.leeuwwolk.com")
+
+    def test_expected_type_rejects(self):
+        token = _make_token({
+            "sub": "1", "role": "admin", "type": "refresh",
+            "exp": int(time.time()) + 1800, "iat": int(time.time()),
+        })
+        with pytest.raises(jwt.InvalidTokenError):
+            verify_token(token, PUBLIC_KEY, expected_type="access")

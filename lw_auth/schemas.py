@@ -2,10 +2,13 @@ from pydantic import BaseModel
 
 
 class TokenPayload(BaseModel):
-    sub: str                    # user_id
-    role: str                   # badge del rol (ej: "admin", "legal_user")
-    email: str | None = None    # email del usuario
-    org_id: str | None = None   # ID de organización o None
-    type: str                   # "access"
+    sub: str                            # user_id
+    role: str                           # rol (badge global o role_in_org)
+    type: str                           # "access"
     exp: int
     iat: int
+    iss: str | None = None              # issuer
+    jti: str | None = None              # token id
+    email: str | None = None
+    email_verified: bool | None = None
+    org_id: str | None = None
