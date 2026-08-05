@@ -23,8 +23,12 @@ import urllib.request
 
 import jwt as pyjwt
 
+from lw_auth._version import __version__
 from lw_auth.schemas import TokenPayload
 
+# UA no-default: urllib's 'Python-urllib/X.Y' está en las listas de bloqueo de
+# Cloudflare (bot fight mode) y auth.leeuwwolk.com lo rechaza con 403.
+USER_AGENT = f"lw-auth/{__version__} (+https://github.com/lgma/lw-auth)"
 ALGORITHM = "RS256"
 DEFAULT_ISSUER = "auth.leeuwwolk.com"
 DEFAULT_CACHE_TTL = 3600  # 1 hour
@@ -47,11 +51,9 @@ class JWKSClient:
         self._fetched_at: float = 0.0
 
     def _fetch(self) -> None:
-        # Use a non-default User-Agent so Cloudflare/WAFs don't classify us as a bot.
-        # urllib's default 'Python-urllib/X.Y' is on most block lists.
         req = urllib.request.Request(
             self.jwks_url,
-            headers={"User-Agent": "lw-auth/0.2.1 (+https://github.com/lgma/lw-auth)"},
+            headers={"User-Agent": USER_AGENT},
         )
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read())
