@@ -1,6 +1,6 @@
 [project]
 name = "lw-auth"
-version = "0.3.0"
+version = "0.3.1"
 description = "Leeuwwolk — JWT verification + alta de clientes para productos Flask y FastAPI"
 requires-python = ">=3.11"
 dependencies = [

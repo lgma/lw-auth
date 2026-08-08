@@ -12,3 +12,7 @@ class TokenPayload(BaseModel):
     email: str | None = None
     email_verified: bool | None = None
     org_id: str | None = None
+    # Personal de la plataforma Leeuwwolk (rol global admin en auth). Trátalo
+    # como superadmin local SIN fila en tu BD; el tenant que opera se elige en
+    # pantalla, no con su org_id. Audita sus acciones. Ver INTEGRACION.md §4.1.
+    staff: bool = False

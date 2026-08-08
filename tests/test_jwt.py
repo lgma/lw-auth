@@ -184,3 +184,21 @@ class TestStrictValidation:
         })
         with pytest.raises(jwt.InvalidTokenError):
             verify_token(token, PUBLIC_KEY, expected_type="access")
+
+
+class TestStaffClaim:
+    def test_staff_true_se_expone(self):
+        payload = {
+            "sub": "1", "role": "admin", "type": "access", "staff": True,
+            "exp": int(time.time()) + 1800, "iat": int(time.time()),
+        }
+        result = verify_token(_make_token(payload), PUBLIC_KEY)
+        assert result.staff is True
+
+    def test_sin_claim_default_false(self):
+        payload = {
+            "sub": "42", "role": "legal_user", "type": "access",
+            "exp": int(time.time()) + 1800, "iat": int(time.time()),
+        }
+        result = verify_token(_make_token(payload), PUBLIC_KEY)
+        assert result.staff is False
